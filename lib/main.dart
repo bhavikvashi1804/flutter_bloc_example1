@@ -39,15 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('Flutter BLoC Demo'),
       ),
       body: ListView.builder(
-        itemBuilder: (context,index)=>Card(
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(_pageData[index]),
-          ),
-          color: Colors.amber,
-          margin: EdgeInsets.all(5),
-          
-        ),
+        itemBuilder: (context,index)=>oneItemUI(index),
         itemCount: _pageData.length,
       ), 
     );
@@ -57,4 +49,18 @@ class _MyHomePageState extends State<MyHomePage> {
     await Future.delayed(Duration(seconds:1));
     return List<String>.generate(10,(index)=>'$index title');
   }
+
+
+   Widget oneItemUI(int index) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Center(child: Text(_pageData[index])),
+      ),
+      color: Colors.amber,
+      margin: EdgeInsets.all(5),
+      
+    );
+  }
 }
+
