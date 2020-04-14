@@ -22,7 +22,10 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  List<String> _pageData=List<String>();
+  List<String> _pageData;
+
+  bool get _fetchData=>_pageData==null;
+  //returns true if _pageData =  null means data is loading
 
   @override
   void initState() { 
@@ -38,7 +41,11 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text('Flutter BLoC Demo'),
       ),
-      body: ListView.builder(
+      body:_fetchData?
+      Center(
+        child: CircularProgressIndicator(),
+      ): 
+      ListView.builder(
         itemBuilder: (context,index)=>oneItemUI(index),
         itemCount: _pageData.length,
       ), 
@@ -46,8 +53,14 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<List<String>> _getListData()async {
-    await Future.delayed(Duration(seconds:1));
+    await Future.delayed(Duration(seconds:5));
     return List<String>.generate(10,(index)=>'$index title');
+
+    //async state
+    //1 loading
+    //2 data fetched
+    //3 error occured
+    //4 no data
   }
 
 
