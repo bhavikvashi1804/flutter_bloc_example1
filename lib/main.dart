@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/home_model.dart';
 
 void main() {
   runApp(MyApp());
@@ -17,7 +16,7 @@ class MyApp extends StatelessWidget {
 }
 
 
-enum HomeViewState{Busy,DataRetrieved,NoData}
+
 
 class MyHomePage extends StatefulWidget { 
 
@@ -26,14 +25,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final StreamController<HomeViewState> stateContoller=StreamController<HomeViewState>();
-  List<String> _items;
+
+  final model=HomeModel();
+  
 
 
   @override
   void initState() { 
 
-    _getListData();
+    model.getListData();
     super.initState();
     
   }
@@ -46,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('Flutter BLoC Demo'),
       ),
       body:StreamBuilder(
-        stream: stateContoller.stream,
+        stream: model.homeState ,
         builder: (context,snapshot){
           
           if(snapshot.hasError){
@@ -65,49 +65,25 @@ class _MyHomePageState extends State<MyHomePage> {
           }
           return ListView.builder(
             itemBuilder: (context,index)=>oneItemUI(index),
-            itemCount: _items.length,
+            itemCount: model.items.length,
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          _getListData();
+          model.getListData();
         },
         child: Icon(Icons.refresh),
       ),
     );
   }
 
-  Future _getListData({bool hasError=false,bool hasData=true})async {
-
-
-    stateContoller.add(HomeViewState.Busy);
-
-    await Future.delayed(Duration(seconds:5));
-
-
-    if(hasError){
-      return stateContoller.addError('An error occured while fetching data.');
-    }
-
-    if(!hasData){
-      return stateContoller.add(HomeViewState.NoData);
-    }
-    _items =List<String>.generate(10,(index)=>'$index title');
-    stateContoller.add(HomeViewState.DataRetrieved);
-
-    //async state
-    //1 loading
-    //2 data fetched
-    //3 error occured
-    //4 no data
-  }
-
+ 
    Widget oneItemUI(int index) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Center(child: Text(_items[index])),
+        child: Center(child: Text(model.items[index])),
       ),
       color: Colors.amber,
       margin: EdgeInsets.all(5),
