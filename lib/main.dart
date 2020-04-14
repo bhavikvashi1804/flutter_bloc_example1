@@ -21,6 +21,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  List<String> _pageData=List<String>();
+
+  @override
+  void initState() { 
+    _getListData().then((value) => setState((){
+      _pageData=value;
+    }));
+    super.initState();
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -28,10 +38,23 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text('Flutter BLoC Demo'),
       ),
-      body: Center(
-        child: Text("Hello"),
-      
+      body: ListView.builder(
+        itemBuilder: (context,index)=>Card(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Text(_pageData[index]),
+          ),
+          color: Colors.amber,
+          margin: EdgeInsets.all(5),
+          
+        ),
+        itemCount: _pageData.length,
       ), 
     );
+  }
+
+  Future<List<String>> _getListData()async {
+    await Future.delayed(Duration(seconds:1));
+    return List<String>.generate(10,(index)=>'$index title');
   }
 }
