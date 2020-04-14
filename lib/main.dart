@@ -14,47 +14,38 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-
-  List<String> _pageData;
-
-  bool get _fetchData=>_pageData==null;
-  //returns true if _pageData =  null means data is loading
-
-  @override
-  void initState() { 
-    _getListData(hasData: false).then((value) => setState((){
-      
-      _pageData=value;
-      if(_pageData.length==0){
-        _pageData=['No data for your account, please try some one'];
-      }
-    })).catchError((error)=>setState((){
-      _pageData=[error];
-    }));
-    super.initState();
-  }
-  
+class MyHomePage extends StatelessWidget {  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter BLoC Demo'),
       ),
-      body:_fetchData?
-      Center(
-        child: CircularProgressIndicator(),
-      ): 
-      ListView.builder(
-        itemBuilder: (context,index)=>oneItemUI(index),
-        itemCount: _pageData.length,
-      ), 
+      body:FutureBuilder(
+        future: _getListData(hasData: false),
+        builder: (context,snapshot){
+          
+          if(snapshot.hasError){
+            return displayInfoMessage(snapshot.error);
+          }
+
+
+          if(!snapshot.hasData){
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          var listItems=snapshot.data;
+          if(listItems.length==0){
+            return displayInfoMessage('There is no data for you, please add some one');
+          }
+          return ListView.builder(
+            itemBuilder: (context,index)=>oneItemUI(index,listItems),
+            itemCount: listItems.length,
+          );
+        },
+      )
     );
   }
 
@@ -79,15 +70,28 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 
-   Widget oneItemUI(int index) {
+   Widget oneItemUI(int index,List<String> items) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Center(child: Text(_pageData[index])),
+        child: Center(child: Text(items[index])),
       ),
       color: Colors.amber,
       margin: EdgeInsets.all(5),
       
+    );
+  }
+
+  Widget displayInfoMessage(String msg){
+    return Center(
+      child: Text(
+        msg,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          color: Colors.red
+        ),
+      ),
     );
   }
 }
