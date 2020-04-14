@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -14,15 +16,37 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {  
+
+enum HomeViewState{Busy,DataRetrieved,NoData}
+
+class MyHomePage extends StatefulWidget { 
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  final StreamController<HomeViewState> stateContoller=StreamController<HomeViewState>();
+  List<String> _items;
+
+
+  @override
+  void initState() { 
+
+    _getListData();
+    super.initState();
+    
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Flutter BLoC Demo'),
       ),
-      body:FutureBuilder(
-        future: _getListData(hasData: false),
+      body:StreamBuilder(
+        stream: stateContoller.stream,
         builder: (context,snapshot){
           
           if(snapshot.hasError){
@@ -30,41 +54,47 @@ class MyHomePage extends StatelessWidget {
           }
 
 
-          if(!snapshot.hasData){
+          if(!snapshot.hasData|| snapshot.data==HomeViewState.Busy){
             return Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          var listItems=snapshot.data;
-          if(listItems.length==0){
+          if(snapshot.data==HomeViewState.Busy){
             return displayInfoMessage('There is no data for you, please add some one');
           }
           return ListView.builder(
-            itemBuilder: (context,index)=>oneItemUI(index,listItems),
-            itemCount: listItems.length,
+            itemBuilder: (context,index)=>oneItemUI(index),
+            itemCount: _items.length,
           );
         },
-      )
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          _getListData();
+        },
+        child: Icon(Icons.refresh),
+      ),
     );
   }
 
+  Future _getListData({bool hasError=false,bool hasData=true})async {
 
-  //in FutureBuilder there is one problem is you need to fetch data again, then it does not allow
-  //its meaning less
 
-  Future<List<String>> _getListData({bool hasError=false,bool hasData=true})async {
+    stateContoller.add(HomeViewState.Busy);
+
     await Future.delayed(Duration(seconds:5));
 
 
     if(hasError){
-      return Future.error('An error occured while fetching data.');
+      return stateContoller.addError('An error occured while fetching data.');
     }
 
     if(!hasData){
-      return List<String>();
+      return stateContoller.add(HomeViewState.NoData);
     }
-    return List<String>.generate(10,(index)=>'$index title');
+    _items =List<String>.generate(10,(index)=>'$index title');
+    stateContoller.add(HomeViewState.DataRetrieved);
 
     //async state
     //1 loading
@@ -73,12 +103,11 @@ class MyHomePage extends StatelessWidget {
     //4 no data
   }
 
-
-   Widget oneItemUI(int index,List<String> items) {
+   Widget oneItemUI(int index) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Center(child: Text(items[index])),
+        child: Center(child: Text(_items[index])),
       ),
       color: Colors.amber,
       margin: EdgeInsets.all(5),
