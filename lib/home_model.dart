@@ -1,23 +1,37 @@
 
 import 'dart:async';
 
+import './home_state.dart';
+import './home_event.dart';
+
 enum HomeViewState{Busy,DataRetrieved,NoData}
 
 
 class HomeModel{
   
-  final StreamController<HomeViewState> _stateContoller=StreamController<HomeViewState>();
-  List<String> items;
+  final StreamController<HomeState> _stateContoller=StreamController<HomeState>();
+  List<String> _items;
 
 
-  Stream<HomeViewState> get homeState=>_stateContoller.stream;
+  Stream<HomeState> get homeState=>_stateContoller.stream;
 
 
 
-   Future getListData({bool hasError=false,bool hasData=true})async {
+  void dispatch(HomeEvent event){
+    if(event is FetchData){
+      _getListData(hasData: event.hasData,hasError: event.hasError);
+      
+    }
+    print('Event displach $event');
+
+  }
 
 
-    _stateContoller.add(HomeViewState.Busy);
+
+   Future _getListData({bool hasError=false,bool hasData=true})async {
+
+
+    _stateContoller.add(BusyHomeState());
 
     await Future.delayed(Duration(seconds:5));
 
@@ -27,10 +41,10 @@ class HomeModel{
     }
 
     if(!hasData){
-      return _stateContoller.add(HomeViewState.NoData);
+      return _stateContoller.add(DataFetchedHomeState(data: List<String>()));
     }
-    items =List<String>.generate(10,(index)=>'$index title');
-    _stateContoller.add(HomeViewState.DataRetrieved);
+    _items =List<String>.generate(10,(index)=>'$index title');
+    _stateContoller.add(DataFetchedHomeState(data: _items));
 
     //async state
     //1 loading

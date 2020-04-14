@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/home_model.dart';
+import './home_model.dart';
+import './home_state.dart';
+import './home_event.dart';
 
 void main() {
   runApp(MyApp());
@@ -33,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() { 
 
-    model.getListData();
+    model.dispatch(FetchData());
     super.initState();
     
   }
@@ -53,25 +55,28 @@ class _MyHomePageState extends State<MyHomePage> {
             return displayInfoMessage(snapshot.error);
           }
 
+          var homeState=snapshot.data;
 
-          if(!snapshot.hasData|| snapshot.data==HomeViewState.Busy){
+          if(!snapshot.hasData|| homeState is BusyHomeState){
             return Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          if(snapshot.data==HomeViewState.Busy){
-            return displayInfoMessage('There is no data for you, please add some one');
+          if(homeState is DataFetchedHomeState){
+            if(!homeState.hasData){
+              return displayInfoMessage('There is no data for you, please add some one');
+            }
           }
           return ListView.builder(
-            itemBuilder: (context,index)=>oneItemUI(index),
-            itemCount: model.items.length,
+            itemBuilder: (context,index)=>oneItemUI(index,homeState.data),
+            itemCount: homeState.data.length,
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          model.getListData();
+          model.dispatch(FetchData());
         },
         child: Icon(Icons.refresh),
       ),
@@ -79,11 +84,11 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
  
-   Widget oneItemUI(int index) {
+   Widget oneItemUI(int index,List<String> items) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Center(child: Text(model.items[index])),
+        child: Center(child: Text(items[index])),
       ),
       color: Colors.amber,
       margin: EdgeInsets.all(5),
