@@ -49,6 +49,10 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
+
+  //in FutureBuilder there is one problem is you need to fetch data again, then it does not allow
+  //its meaning less
+
   Future<List<String>> _getListData({bool hasError=false,bool hasData=true})async {
     await Future.delayed(Duration(seconds:5));
 
